@@ -16,5 +16,12 @@
 package com.example.inventory
 
 import android.app.Application
+import com.example.inventory.data.ItemRoomDatabase
 
-class InventoryApplication : Application()
+//Создадим экземпляр базы данных в классе Application.
+//Используйте lazy делегат, чтобы экземпляр database создавался лениво при первом обращении к ссылке
+// (а не при запуске приложения). Это создаст базу данных (физическую базу данных на диске) при первом доступе.
+//Вы будете использовать этот database экземпляр позже при создании экземпляра ViewModel.
+class InventoryApplication : Application() {
+    val database: ItemRoomDatabase by lazy { ItemRoomDatabase.getDatabase(this) }
+}
