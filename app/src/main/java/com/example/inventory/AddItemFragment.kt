@@ -22,7 +22,10 @@ import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
+import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.inventory.data.Item
 import com.example.inventory.databinding.FragmentAddItemBinding
 
 /**
@@ -31,12 +34,22 @@ import com.example.inventory.databinding.FragmentAddItemBinding
 class AddItemFragment : Fragment() {
 
     private val navigationArgs: ItemDetailFragmentArgs by navArgs()
+    lateinit var item: Item
 
-    // Binding object instance corresponding to the fragment_add_item.xml layout
-    // This property is non-null between the onCreateView() and onDestroyView() lifecycle callbacks,
-    // when the view hierarchy is attached to the fragment
+    // Привязка экземпляра объекта, соответствующего макету fragment_add_item.xml
+    // Это свойство не равно нулю между обратными вызовами жизненного цикла onCreateView () и onDestroyView (),
+    // когда к фрагменту прикреплена иерархия представления
     private var _binding: FragmentAddItemBinding? = null
     private val binding get() = _binding!!
+
+    //Внутри лямбда вызовите InventoryViewModelFactory()конструктор и передайте ItemDao экземпляр.
+    //Используйте database экземпляр, который вы создали в одной из предыдущих задач, для вызова itemDao конструктора.
+    private val viewModel: InventoryViewModel by activityViewModels {
+        InventoryViewModelFactory(
+            (activity?.application as InventoryApplication).database
+                .itemDao()
+        )
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -47,12 +60,46 @@ class AddItemFragment : Fragment() {
         return binding.root
     }
 
+    //Возвращает true, если EditTexts не пустые
+    private fun isEntryValid(): Boolean {
+        return viewModel.isEntryValid(
+            binding.itemName.text.toString(),
+            binding.itemPrice.text.toString(),
+            binding.itemCount.text.toString()
+        )
+    }
+
+    //Вставляет новый элемент в базу данных и переходит к фрагменту списка.
+    private fun addNewItem() {
+        if (isEntryValid()) {
+            viewModel.addNewItem(
+                binding.itemName.text.toString(),
+                binding.itemPrice.text.toString(),
+                binding.itemCount.text.toString(),
+            )
+            val action = AddItemFragmentDirections.actionAddItemFragmentToItemListFragment()
+            //импортируем import androidx.navigation.fragment.findNavController
+            findNavController().navigate(action)
+        }
+    }
+
+    //Вызывается при создании представления.
+    //      * Аргумент itemId Navigation определяет элемент редактирования или добавление нового элемента.
+    //      * Если itemId положительный, этот метод извлекает информацию из базы данных и
+    //      * позволяет пользователю обновлять его.
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+        binding.saveAction.setOnClickListener {
+            addNewItem()
+        }
+    }
+
     /**
      * Called before fragment is destroyed.
      */
     override fun onDestroyView() {
         super.onDestroyView()
-        // Hide keyboard.
+        // функция скрывает клавиатуру перед разрушением фрагмента.
         val inputMethodManager = requireActivity().getSystemService(INPUT_METHOD_SERVICE) as
                 InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
