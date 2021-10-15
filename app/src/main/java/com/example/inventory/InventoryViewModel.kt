@@ -1,8 +1,6 @@
 package com.example.inventory
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.inventory.data.Item
 import com.example.inventory.data.ItemDao
 import kotlinx.coroutines.launch
@@ -13,6 +11,9 @@ import kotlinx.coroutines.launch
 // Все операции с базой данных должны выполняться в стороне от основного потока пользовательского интерфейса,
 // вы сделаете это с помощью сопрограмм и viewModelScope.
 class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
+
+    //Функция getItems() возвращает Flow. Чтобы использовать данные как LiveData значение, используйте asLiveData()функцию.
+    val allItems: LiveData<List<Item>> = itemDao.getItems().asLiveData()
 
     //сохраняем в базу данных новый продукт
     //Функция будет вызываться из фрагмента пользовательского интерфейса
