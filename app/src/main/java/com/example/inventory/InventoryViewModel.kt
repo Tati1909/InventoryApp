@@ -15,7 +15,7 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
     //Функция getItems() возвращает Flow. Чтобы использовать данные как LiveData значение, используйте asLiveData()функцию.
     val allItems: LiveData<List<Item>> = itemDao.getItems().asLiveData()
 
-    //сохраняем в базу данных новый продукт
+    //Добавляем в базу данных новый продукт
     //Функция будет вызываться из фрагмента пользовательского интерфейса
     fun addNewItem(itemName: String, itemPrice: String, itemCount: String) {
         val newItem = getNewItemEntry(itemName, itemPrice, itemCount)
@@ -33,6 +33,13 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         }
     }
 
+    //функция для обновления Entity(при продаже продукта)
+    private fun updateItem(item: Item) {
+        viewModelScope.launch {
+            itemDao.update(item)
+        }
+    }
+
     //Экран « Добавить элемент» содержит три текстовых поля для получения сведений об элементе от пользователя.
 //На этом шаге вы добавите функцию, чтобы проверить, не является ли текст в текстовых полях пустым.
 //Вы будете использовать эту функцию для проверки ввода данных пользователем перед добавлением или обновлением объекта в базе данных.
@@ -45,6 +52,8 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
     }
 
     //В текущей задаче мы используем три строки в качестве входных данных (то, что мы будем вводить) и конвертируем их в Item entity
+    // То есть 'Арбуз' конвертируется в @ColumnInfo(name = "name")
+    //                                 val itemName: String
     private fun getNewItemEntry(itemName: String, itemPrice: String, itemCount: String): Item {
         return Item(
             itemName = itemName,
@@ -60,6 +69,29 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         return itemDao.getItem(id).asLiveData()
         //Функция возвращает Flow. Чтобы использовать Flow как функцию LiveData вызываем asLiveData()
         //Т. е. asLiveData конвертирует itemDao.getItem(id) в LiveData<Item>
+    }
+
+    //Продать продукт(уменьшаем товар на единицу)
+    //Про copy см.5.2.2.5
+    fun sellItem(item: Item) {
+        if (item.quantityInStock > 0) {
+            val newItem = item.copy(quantityInStock = item.quantityInStock - 1)
+            //обновляем Entity в базе данных
+            updateItem(newItem)
+        }
+    }
+
+    //Мы можем отключить кнопку «Продать» , когда нет товаров для продажи.
+    //Возвращает false, если товары закончились
+    fun isStockAvailable(item: Item): Boolean {
+        return (item.quantityInStock > 0)
+    }
+
+    // функция для удаления объекта из базы данных
+    fun deleteItem(item: Item) {
+        viewModelScope.launch {
+            itemDao.delete(item)
+        }
     }
 }
 

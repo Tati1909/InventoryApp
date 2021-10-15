@@ -78,7 +78,8 @@ class ItemDetailFragment : Fragment() {
     }
 
     /**
-     * Displays an alert dialog to get the user's confirmation before deleting the item.
+    Этот метод отображает диалоговое окно с предупреждением, чтобы получить подтверждение пользователя
+    перед удалением элемента, и вызывает deleteItem() функцию при нажатии положительной кнопки
      */
     private fun showConfirmationDialog() {
         MaterialAlertDialogBuilder(requireContext())
@@ -93,9 +94,11 @@ class ItemDetailFragment : Fragment() {
     }
 
     /**
-     * Deletes the current item and navigates to the list fragment.
+    метод для вызова функции удаления продукта
+    и обработки навигации.
      */
     private fun deleteItem() {
+        viewModel.deleteItem(item)
         findNavController().navigateUp()
     }
 
@@ -109,11 +112,18 @@ class ItemDetailFragment : Fragment() {
 
     //функция для установки названия продукта, цены и количества на складе
     //такая же функция есть в ItemListAdapter
+    //И слушатель для кнопок
     private fun bind(item: Item) {
         binding.apply {
             itemName.text = item.itemName
             itemPrice.text = item.getFormattedPrice()
             itemCount.text = item.quantityInStock.toString()
+            //Отключите кнопку Продать , если количество равно нулю
+            sellButton.isEnabled = viewModel.isStockAvailable(item)
+            //слушатель на кнопку продать
+            sellButton.setOnClickListener { viewModel.sellItem(item) }
+            //слушатель на кнопку удалить
+            deleteButton.setOnClickListener { showConfirmationDialog() }
         }
     }
 }
