@@ -54,7 +54,12 @@ class ItemListFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this.context)
+
+        //Добавили обработчик щелчка к RecyclerView для навигации в к Item Details
         val adapter = ItemListAdapter {
+            val action =
+                ItemListFragmentDirections.actionItemListFragmentToItemDetailFragment(it.id)
+            this@ItemListFragment.findNavController().navigate(action)
         }
         binding.recyclerView.adapter = adapter
 
