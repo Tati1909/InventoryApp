@@ -103,6 +103,21 @@ class ItemDetailFragment : Fragment() {
     }
 
     /**
+    метод для вызова функции редактирования продукта
+    и обработки навигации.
+     */
+    private fun editItem() {
+        //Переходим на AddItemFragment, передавая параметры нового заголовка('Редактировать') и id Entity
+        //в AddItemFragment. Т. е. AddItemFragment используем повторно, только меняем заголовок.
+        //Саму кнопку слушаем в методе bind()
+        val action = ItemDetailFragmentDirections.actionItemDetailFragmentToAddItemFragment(
+            getString(R.string.edit_fragment_title),
+            item.id
+        )
+        this.findNavController().navigate(action)
+    }
+
+    /**
      * Called when fragment is destroyed.
      */
     override fun onDestroyView() {
@@ -124,6 +139,9 @@ class ItemDetailFragment : Fragment() {
             sellButton.setOnClickListener { viewModel.sellItem(item) }
             //слушатель на кнопку удалить
             deleteButton.setOnClickListener { showConfirmationDialog() }
+            //слушатель на кнопку редактировать
+            //переходим к экрану редактирования
+            editButton.setOnClickListener { editItem() }
         }
     }
 }
