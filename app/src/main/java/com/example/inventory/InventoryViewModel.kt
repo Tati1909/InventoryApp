@@ -1,8 +1,6 @@
 package com.example.inventory
 
-import androidx.lifecycle.ViewModel
-import androidx.lifecycle.ViewModelProvider
-import androidx.lifecycle.viewModelScope
+import androidx.lifecycle.*
 import com.example.inventory.data.Item
 import com.example.inventory.data.ItemDao
 import kotlinx.coroutines.launch
@@ -14,12 +12,18 @@ import kotlinx.coroutines.launch
 // вы сделаете это с помощью сопрограмм и viewModelScope.
 class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
 
+    //Функция getItems() возвращает Flow. Чтобы использовать данные как LiveData значение, используйте asLiveData()функцию.
+    val allItems: LiveData<List<Item>> = itemDao.getItems().asLiveData()
+
     //сохраняем в базу данных новый продукт
     //Функция будет вызываться из фрагмента пользовательского интерфейса
     fun addNewItem(itemName: String, itemPrice: String, itemCount: String) {
         val newItem = getNewItemEntry(itemName, itemPrice, itemCount)
         insertItem(newItem)
     }
+    //Обратите внимание, что вы не использовали viewModelScope.launch для addNewItem(), но это необходимо только в insertItem(),
+    //когда мы напрямую отправляем  запросы в базу данных, т. е. вызываем методы DAO.
+    // В Dao suspend функции и их разрешено вызывать только из сопрограммы или другой функции приостановки
 
     //функция принимает объект Item (продукт) и добавляет данные в базу данных неблокирующим способом.
     private fun insertItem(item: Item) {
@@ -49,9 +53,14 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         )
     }
 
-    //Обратите внимание, что вы не использовали viewModelScope.launch для addNewItem(), но это необходимо только в insertItem(),
-    //когда мы напрямую отправляем  запросы в базу данных, т. е. вызываем методы DAO.
-    // В Dao suspend функции и их разрешено вызывать только из сопрограммы или другой функции приостановки
+    //Когда мы нажимаем на элемент списка, то переходим на детальное отображение данных(fragment_item_detail.xml)
+    //Именно это отображение данных будет хранить в себе retrieveItem, которую мы вызываем в ItemDetailFragment
+    //retrieveItem - получить элемент (по Id)
+    fun retrieveItem(id: Int): LiveData<Item> {
+        return itemDao.getItem(id).asLiveData()
+        //Функция возвращает Flow. Чтобы использовать Flow как функцию LiveData вызываем asLiveData()
+        //Т. е. asLiveData конвертирует itemDao.getItem(id) в LiveData<Item>
+    }
 }
 
 //InventoryViewModelFactory класс для создания InventoryViewModel экземпляра

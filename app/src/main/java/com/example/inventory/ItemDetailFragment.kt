@@ -22,8 +22,11 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
+import com.example.inventory.data.Item
+import com.example.inventory.data.getFormattedPrice
 import com.example.inventory.databinding.FragmentItemDetailBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 
@@ -37,6 +40,16 @@ class ItemDetailFragment : Fragment() {
     private var _binding: FragmentItemDetailBinding? = null
     private val binding get() = _binding!!
 
+    //Вы будете использовать это свойство для хранения информации об одной Entity
+    lateinit var item: Item
+
+    //Используйте by делегат, чтобы передать инициализацию свойства классу activityViewModels
+    private val viewModel: InventoryViewModel by activityViewModels {
+        InventoryViewModelFactory(
+            (activity?.application as InventoryApplication).database.itemDao()
+        )
+    }
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -44,6 +57,24 @@ class ItemDetailFragment : Fragment() {
     ): View? {
         _binding = FragmentItemDetailBinding.inflate(inflater, container, false)
         return binding.root
+    }
+
+    override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+        super.onViewCreated(view, savedInstanceState)
+
+        //Это будет наш !!!!!аргумент в навигации к ItemDetailFragment из ItemListFragment
+        //(этот аргумент мы просто будем передавать в ItemDetailFragment -
+        // мы будем использовать эту id переменную для получения сведений об элементе)
+        val id = navigationArgs.itemId
+
+        //Присоединяем наблюдателя к возвращаемому значению Item(Entity) из метода retrieveItem
+        viewModel.retrieveItem(id)
+            .observe(this@ItemDetailFragment.viewLifecycleOwner) { selectedItem ->
+                item = selectedItem
+                bind(item)
+                //Внутри лямбды передаем selectedItem в качестве параметра, который содержит Item объект,
+                //полученный из базы данных. В теле лямбда-функции присвоим selectedItem значение item.
+            }
     }
 
     /**
@@ -74,5 +105,15 @@ class ItemDetailFragment : Fragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         _binding = null
+    }
+
+    //функция для установки названия продукта, цены и количества на складе
+    //такая же функция есть в ItemListAdapter
+    private fun bind(item: Item) {
+        binding.apply {
+            itemName.text = item.itemName
+            itemPrice.text = item.getFormattedPrice()
+            itemCount.text = item.quantityInStock.toString()
+        }
     }
 }
