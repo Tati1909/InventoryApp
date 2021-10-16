@@ -84,6 +84,24 @@ class AddItemFragment : Fragment() {
         }
     }
 
+    //Эту функцию вызываем после нажатия кнопки 'сохранить', когда редактировали продукт.
+    //if условие для проверки ввода пользователя(если текстовые поля заполнены,
+    //то обновляем наши новые данные с помощью DAO метода suspend fun update(item: Item))
+    //Используем itemId из аргументов навигации для передачи его в AddItemFragment(!но фрагмент редактирования)
+    private fun updateItem() {
+        if (isEntryValid()) {
+            viewModel.updateItem(
+                this@AddItemFragment.navigationArgs.itemId,
+                this@AddItemFragment.binding.itemName.text.toString(),
+                this@AddItemFragment.binding.itemPrice.text.toString(),
+                this@AddItemFragment.binding.itemCount.text.toString()
+            )
+            val action = AddItemFragmentDirections.actionAddItemFragmentToItemListFragment()
+            findNavController().navigate(action)
+        }
+    }
+
+
     //Вызывается при создании View.
     //      * Аргумент itemId Navigation определяет элемент редактирования или добавление нового элемента.
     //      * Если itemId положительный, этот метод извлекает информацию из базы данных и
@@ -106,8 +124,7 @@ class AddItemFragment : Fragment() {
             }
         } else {
             //кнопка сохранить при добавлении нового продукта
-            // или при его редактировании
-            binding.saveAction.setOnClickListener {
+            binding.saveButton.setOnClickListener {
                 addNewItem()
             }
         }
@@ -136,6 +153,8 @@ class AddItemFragment : Fragment() {
             itemPrice.setText(price, TextView.BufferType.SPANNABLE)
             //не забудьте преобразовать item.quantityInStock в String
             itemCount.setText(item.quantityInStock.toString(), TextView.BufferType.SPANNABLE)
+            //обработка кнопки сохранить после ее редактирования
+            saveButton.setOnClickListener { updateItem() }
         }
     }
 }

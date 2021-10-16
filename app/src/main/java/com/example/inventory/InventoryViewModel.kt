@@ -33,7 +33,7 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         }
     }
 
-    //функция для обновления Entity(при продаже продукта)
+    //функция для обновления Entity(при продаже и редактировании продукта)
     private fun updateItem(item: Item) {
         viewModelScope.launch {
             itemDao.update(item)
@@ -92,6 +92,38 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         viewModelScope.launch {
             itemDao.delete(item)
         }
+    }
+
+    //5.2.2.5
+    //Функция нужна для обновления Entity
+    //Для сохранения продукта после его редактирования
+    //getUpdatedItemEntry() конвертирует входящие параметры в данные Entity и переводит в нужный тип
+    private fun getUpdatedItemEntry(
+        itemId: Int,
+        itemName: String,
+        itemPrice: String,
+        itemCount: String
+    ): Item {
+        return Item(
+            id = itemId,
+            itemName = itemName,
+            itemPrice = itemPrice.toDouble(),
+            quantityInStock = itemCount.toInt()
+        )
+    }
+
+    //Обновляем Entity
+    //Для сохранения продукта после его редактирования
+    //Функция public
+    fun updateItem(
+        itemId: Int,
+        itemName: String,
+        itemPrice: String,
+        itemCount: String
+    ) {
+        //getUpdatedItemEntry() передает информацию о данных сущности
+        val updatedItem = getUpdatedItemEntry(itemId, itemName, itemPrice, itemCount)
+        updateItem(updatedItem)
     }
 }
 
