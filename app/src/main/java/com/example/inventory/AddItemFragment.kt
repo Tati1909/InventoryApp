@@ -21,6 +21,7 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.view.inputmethod.InputMethodManager
+import android.widget.TextView
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
@@ -83,14 +84,49 @@ class AddItemFragment : Fragment() {
         }
     }
 
-    //Вызывается при создании представления.
+    //Эту функцию вызываем после нажатия кнопки 'сохранить', когда редактировали продукт.
+    //if условие для проверки ввода пользователя(если текстовые поля заполнены,
+    //то обновляем наши новые данные с помощью DAO метода suspend fun update(item: Item))
+    //Используем itemId из аргументов навигации для передачи его в AddItemFragment(!но фрагмент редактирования)
+    private fun updateItem() {
+        if (isEntryValid()) {
+            viewModel.updateItem(
+                this@AddItemFragment.navigationArgs.itemId,
+                this@AddItemFragment.binding.itemName.text.toString(),
+                this@AddItemFragment.binding.itemPrice.text.toString(),
+                this@AddItemFragment.binding.itemCount.text.toString()
+            )
+            val action = AddItemFragmentDirections.actionAddItemFragmentToItemListFragment()
+            findNavController().navigate(action)
+        }
+    }
+
+
+    //Вызывается при создании View.
     //      * Аргумент itemId Navigation определяет элемент редактирования или добавление нового элемента.
     //      * Если itemId положительный, этот метод извлекает информацию из базы данных и
     //      * позволяет пользователю обновлять его.
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        binding.saveAction.setOnClickListener {
-            addNewItem()
+
+        //получаем  itemId из аргументов навигации(ложили в ItemDetailFragment в методе editItem)
+        val id = navigationArgs.itemId
+
+        //Добавьте if-else блок с условием, чтобы проверить, id больше ли нуля,
+        //и переместите прослушиватель нажатия кнопки « Сохранить» в else блок.
+        //Внутри if блока извлеките объект с помощью id и добавьте к нему наблюдателя.
+        //Внутри наблюдателя получите выбранный продукт(item) и вызовите bind() передавая данные этого продукта в текстовые поля фрагмента.
+        //Полная функция предназначена для копирования и вставки. Это просто и легко понять;
+        if (id > 0) {
+            viewModel.retrieveItem(id).observe(this.viewLifecycleOwner) { selectedItem ->
+                item = selectedItem
+                bind(item)
+            }
+        } else {
+            //кнопка сохранить при добавлении нового продукта
+            binding.saveButton.setOnClickListener {
+                addNewItem()
+            }
         }
     }
 
@@ -104,5 +140,21 @@ class AddItemFragment : Fragment() {
                 InputMethodManager
         inputMethodManager.hideSoftInputFromWindow(requireActivity().currentFocus?.windowToken, 0)
         _binding = null
+    }
+
+    //эта функция нужна для РЕДАКТИРОВАНИЯ заметки.
+    //функция для привязки текстовых полей c деталями Entity
+    //Реализация bind()функции очень похожа на то, что вы делали ранее в ItemDetailFragment
+    private fun bind(item: Item) {
+        //округлите цену до двух десятичных знаков с помощью format()функции
+        val price = "%.2f".format(item.itemPrice)
+        binding.apply {
+            itemName.setText(item.itemName, TextView.BufferType.SPANNABLE)
+            itemPrice.setText(price, TextView.BufferType.SPANNABLE)
+            //не забудьте преобразовать item.quantityInStock в String
+            itemCount.setText(item.quantityInStock.toString(), TextView.BufferType.SPANNABLE)
+            //обработка кнопки сохранить после ее редактирования
+            saveButton.setOnClickListener { updateItem() }
+        }
     }
 }
