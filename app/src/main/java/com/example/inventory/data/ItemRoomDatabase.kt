@@ -13,7 +13,7 @@ import androidx.room.RoomDatabase
 //Предоставить доступ к одному экземпляру каждого класса DAO.
 //Выполнить любую дополнительную настройку, например предварительное заполнение базы данных.
 //Установите exportSchema значение false, чтобы не сохранять резервные копии истории версий схемы.
-@Database(entities = [Item::class], version = 1, exportSchema = false)
+@Database(entities = [ItemEntity::class], version = 1, exportSchema = false)
 abstract class ItemRoomDatabase : RoomDatabase() {
 
     //База данных должна знать о DAO. Внутри тела класса объявите абстрактную функцию, которая возвращает ItemDao.
