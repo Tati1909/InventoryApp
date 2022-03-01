@@ -24,6 +24,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
+import com.example.inventory.data.ItemEntity
 import com.example.inventory.databinding.ItemListFragmentBinding
 
 /**
@@ -55,10 +56,9 @@ class ItemListFragment : Fragment() {
 
         binding.recyclerView.layoutManager = LinearLayoutManager(this.context)
 
-        //Добавили обработчик щелчка к RecyclerView для навигации в к Item Details
-        val adapter = ItemListAdapter {
-            val action =
-                ItemListFragmentDirections.actionItemListFragmentToItemDetailFragment(it.id)
+        //Добавили обработчик щелчка к RecyclerView для навигации в к ItemDetailFragment
+        val adapter = ItemListAdapter { itemEntity: ItemEntity ->
+            val action = ItemListFragmentDirections.actionItemListFragmentToItemDetailFragment(itemEntity.id)
             this@ItemListFragment.findNavController().navigate(action)
         }
         binding.recyclerView.adapter = adapter
