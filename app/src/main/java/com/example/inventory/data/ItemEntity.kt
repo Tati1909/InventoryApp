@@ -7,7 +7,7 @@ import java.text.NumberFormat
 
 //Этот класс будет представлять объект базы данных в вашем приложении.
 @Entity(tableName = "item")
-data class Item(
+data class ItemEntity(
     @PrimaryKey(autoGenerate = true)
     val id: Int = 0,
     @ColumnInfo(name = "name")
@@ -19,5 +19,5 @@ data class Item(
 )
 
 // отформатируем цену товара  itemPrice в строку формата валюты с пом.  функции расширения getFormattedPrice()
-fun Item.getFormattedPrice(): String =
+fun ItemEntity.getFormattedPrice(): String =
     NumberFormat.getCurrencyInstance().format(itemPrice)

@@ -1,8 +1,8 @@
 package com.example.inventory
 
 import androidx.lifecycle.*
-import com.example.inventory.data.Item
 import com.example.inventory.data.ItemDao
+import com.example.inventory.data.ItemEntity
 import kotlinx.coroutines.launch
 
 //К настоящему времени вы создали базу данных, а классы пользовательского интерфейса были частью начального кода.
@@ -13,7 +13,7 @@ import kotlinx.coroutines.launch
 class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
 
     //Функция getItems() возвращает Flow. Чтобы использовать данные как LiveData значение, используйте asLiveData()функцию.
-    val allItems: LiveData<List<Item>> = itemDao.getItems().asLiveData()
+    val allItems: LiveData<List<ItemEntity>> = itemDao.getItems().asLiveData()
 
     //Добавляем в базу данных новый продукт
     //Функция будет вызываться из фрагмента пользовательского интерфейса
@@ -26,17 +26,17 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
     // В Dao suspend функции и их разрешено вызывать только из сопрограммы или другой функции приостановки
 
     //функция принимает объект Item (продукт) и добавляет данные в базу данных неблокирующим способом.
-    private fun insertItem(item: Item) {
+    private fun insertItem(itemEntity: ItemEntity) {
         //ViewModelScope - это свойство ViewModel, которое автоматически отменяет свои дочерние сопрограммы при уничтожении ViewModel .
         viewModelScope.launch {
-            itemDao.insert(item)
+            itemDao.insert(itemEntity)
         }
     }
 
     //функция для обновления Entity(при продаже и редактировании продукта)
-    private fun updateItem(item: Item) {
+    private fun updateItem(itemEntity: ItemEntity) {
         viewModelScope.launch {
-            itemDao.update(item)
+            itemDao.update(itemEntity)
         }
     }
 
@@ -54,8 +54,12 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
     //В текущей задаче мы используем три строки в качестве входных данных (то, что мы будем вводить) и конвертируем их в Item entity
     // То есть 'Арбуз' конвертируется в @ColumnInfo(name = "name")
     //                                 val itemName: String
-    private fun getNewItemEntry(itemName: String, itemPrice: String, itemCount: String): Item {
-        return Item(
+    private fun getNewItemEntry(
+        itemName: String,
+        itemPrice: String,
+        itemCount: String
+    ): ItemEntity {
+        return ItemEntity(
             itemName = itemName,
             itemPrice = itemPrice.toDouble(),
             quantityInStock = itemCount.toInt()
@@ -65,7 +69,7 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
     //Когда мы нажимаем на элемент списка, то переходим на детальное отображение данных(fragment_item_detail.xml)
     //Именно это отображение данных будет хранить в себе retrieveItem, которую мы вызываем в ItemDetailFragment
     //retrieveItem - получить элемент (по Id)
-    fun retrieveItem(id: Int): LiveData<Item> {
+    fun retrieveItem(id: Int): LiveData<ItemEntity> {
         return itemDao.getItem(id).asLiveData()
         //Функция возвращает Flow. Чтобы использовать Flow как функцию LiveData вызываем asLiveData()
         //Т. е. asLiveData конвертирует itemDao.getItem(id) в LiveData<Item>
@@ -73,9 +77,9 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
 
     //Продать продукт(уменьшаем товар на единицу)
     //Про copy см.5.2.2.5
-    fun sellItem(item: Item) {
-        if (item.quantityInStock > 0) {
-            val newItem = item.copy(quantityInStock = item.quantityInStock - 1)
+    fun sellItem(itemEntity: ItemEntity) {
+        if (itemEntity.quantityInStock > 0) {
+            val newItem = itemEntity.copy(quantityInStock = itemEntity.quantityInStock - 1)
             //обновляем Entity в базе данных
             updateItem(newItem)
         }
@@ -83,14 +87,14 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
 
     //Мы можем отключить кнопку «Продать» , когда нет товаров для продажи.
     //Возвращает false, если товары закончились
-    fun isStockAvailable(item: Item): Boolean {
-        return (item.quantityInStock > 0)
+    fun isStockAvailable(itemEntity: ItemEntity): Boolean {
+        return (itemEntity.quantityInStock > 0)
     }
 
     // функция для удаления объекта из базы данных
-    fun deleteItem(item: Item) {
+    fun deleteItem(itemEntity: ItemEntity) {
         viewModelScope.launch {
-            itemDao.delete(item)
+            itemDao.delete(itemEntity)
         }
     }
 
@@ -103,8 +107,8 @@ class InventoryViewModel(private val itemDao: ItemDao) : ViewModel() {
         itemName: String,
         itemPrice: String,
         itemCount: String
-    ): Item {
-        return Item(
+    ): ItemEntity {
+        return ItemEntity(
             id = itemId,
             itemName = itemName,
             itemPrice = itemPrice.toDouble(),

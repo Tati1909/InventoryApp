@@ -25,7 +25,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.inventory.data.Item
+import com.example.inventory.data.ItemEntity
 import com.example.inventory.data.getFormattedPrice
 import com.example.inventory.databinding.FragmentItemDetailBinding
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
@@ -41,7 +41,7 @@ class ItemDetailFragment : Fragment() {
     private val binding get() = _binding!!
 
     //Вы будете использовать это свойство для хранения информации об одной Entity
-    lateinit var item: Item
+    lateinit var itemEntity: ItemEntity
 
     //Используйте by делегат, чтобы передать инициализацию свойства классу activityViewModels
     private val viewModel: InventoryViewModel by activityViewModels {
@@ -70,8 +70,8 @@ class ItemDetailFragment : Fragment() {
         //Присоединяем наблюдателя к возвращаемому значению Item(Entity) из метода retrieveItem
         viewModel.retrieveItem(id)
             .observe(this@ItemDetailFragment.viewLifecycleOwner) { selectedItem ->
-                item = selectedItem
-                bind(item)
+                itemEntity = selectedItem
+                bind(itemEntity)
                 //Внутри лямбды передаем selectedItem в качестве параметра, который содержит Item объект,
                 //полученный из базы данных. В теле лямбда-функции присвоим selectedItem значение item.
             }
@@ -98,7 +98,7 @@ class ItemDetailFragment : Fragment() {
     и обработки навигации.
      */
     private fun deleteItem() {
-        viewModel.deleteItem(item)
+        viewModel.deleteItem(itemEntity)
         findNavController().navigateUp()
     }
 
@@ -112,7 +112,7 @@ class ItemDetailFragment : Fragment() {
         //Саму кнопку слушаем в методе bind()
         val action = ItemDetailFragmentDirections.actionItemDetailFragmentToAddItemFragment(
             getString(R.string.edit_fragment_title),
-            item.id
+            itemEntity.id
         )
         this.findNavController().navigate(action)
     }
@@ -128,15 +128,15 @@ class ItemDetailFragment : Fragment() {
     //функция для установки названия продукта, цены и количества на складе
     //такая же функция есть в ItemListAdapter
     //И слушатель для кнопок
-    private fun bind(item: Item) {
+    private fun bind(itemEntity: ItemEntity) {
         binding.apply {
-            itemName.text = item.itemName
-            itemPrice.text = item.getFormattedPrice()
-            itemCount.text = item.quantityInStock.toString()
+            itemName.text = itemEntity.itemName
+            itemPrice.text = itemEntity.getFormattedPrice()
+            itemCount.text = itemEntity.quantityInStock.toString()
             //Отключите кнопку Продать , если количество равно нулю
-            sellButton.isEnabled = viewModel.isStockAvailable(item)
+            sellButton.isEnabled = viewModel.isStockAvailable(itemEntity)
             //слушатель на кнопку продать
-            sellButton.setOnClickListener { viewModel.sellItem(item) }
+            sellButton.setOnClickListener { viewModel.sellItem(itemEntity) }
             //слушатель на кнопку удалить
             deleteButton.setOnClickListener { showConfirmationDialog() }
             //слушатель на кнопку редактировать

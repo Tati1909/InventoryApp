@@ -1,18 +1,3 @@
-/*
- * Copyright (C) 2021 The Android Open Source Project.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *     http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
 package com.example.inventory
 
 import android.content.Context.INPUT_METHOD_SERVICE
@@ -26,7 +11,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.activityViewModels
 import androidx.navigation.fragment.findNavController
 import androidx.navigation.fragment.navArgs
-import com.example.inventory.data.Item
+import com.example.inventory.data.ItemEntity
 import com.example.inventory.databinding.FragmentAddItemBinding
 
 /**
@@ -35,7 +20,7 @@ import com.example.inventory.databinding.FragmentAddItemBinding
 class AddItemFragment : Fragment() {
 
     private val navigationArgs: ItemDetailFragmentArgs by navArgs()
-    lateinit var item: Item
+    lateinit var itemEntity: ItemEntity
 
     // Привязка экземпляра объекта, соответствующего макету fragment_add_item.xml
     // Это свойство не равно нулю между обратными вызовами жизненного цикла onCreateView () и onDestroyView (),
@@ -119,8 +104,8 @@ class AddItemFragment : Fragment() {
         //Полная функция предназначена для копирования и вставки. Это просто и легко понять;
         if (id > 0) {
             viewModel.retrieveItem(id).observe(this.viewLifecycleOwner) { selectedItem ->
-                item = selectedItem
-                bind(item)
+                itemEntity = selectedItem
+                bind(itemEntity)
             }
         } else {
             //кнопка сохранить при добавлении нового продукта
@@ -145,14 +130,14 @@ class AddItemFragment : Fragment() {
     //эта функция нужна для РЕДАКТИРОВАНИЯ заметки.
     //функция для привязки текстовых полей c деталями Entity
     //Реализация bind()функции очень похожа на то, что вы делали ранее в ItemDetailFragment
-    private fun bind(item: Item) {
+    private fun bind(itemEntity: ItemEntity) {
         //округлите цену до двух десятичных знаков с помощью format()функции
-        val price = "%.2f".format(item.itemPrice)
+        val price = "%.2f".format(itemEntity.itemPrice)
         binding.apply {
-            itemName.setText(item.itemName, TextView.BufferType.SPANNABLE)
+            itemName.setText(itemEntity.itemName, TextView.BufferType.SPANNABLE)
             itemPrice.setText(price, TextView.BufferType.SPANNABLE)
             //не забудьте преобразовать item.quantityInStock в String
-            itemCount.setText(item.quantityInStock.toString(), TextView.BufferType.SPANNABLE)
+            itemCount.setText(itemEntity.quantityInStock.toString(), TextView.BufferType.SPANNABLE)
             //обработка кнопки сохранить после ее редактирования
             saveButton.setOnClickListener { updateItem() }
         }
